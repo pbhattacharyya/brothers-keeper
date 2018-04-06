@@ -1,3 +1,21 @@
+$( document ).ready(function() {
+
+  $("#chart1-button1").click( function() {
+ makeVisible("#chart1-button1", "#chart1-button2");
+  });
+
+
+function makeVisible(toHide, toShow) {
+
+  console.log("test");
+  $(toHide).css("display", "none");
+  $(toShow).css("display", "inline");
+};
+
+});
+
+
+
 function createBubbleChart(error, countries, continentNames) {
   var populations = countries.map(function(country) { return +country.Population; });
   var meanPopulation = d3.mean(populations),
@@ -6,14 +24,18 @@ function createBubbleChart(error, countries, continentNames) {
       populationScaleY;
 
   var continents = d3.set(countries.map(function(country) { return country.ContinentCode; }));
-  var continentColorScale = d3.scaleOrdinal(d3.schemeCategory10)
+  var groups = d3.set(countries.map(function(country) { return country.CountryCode; }));
+  var continentColorScale = d3.scaleOrdinal( d3.schemeRdYlGn[4])
         .domain(continents.values());
 
-  var width = 1200,
-      height = 800;
+  var groupColorScale = d3.scaleOrdinal(d3.schemeBlues[6])
+        .domain(groups.values());
+
+  var width = 900,
+      height = 400;
   var svg,
       circles,
-      circleSize = { min: 10, max: 80 };
+      circleSize = { min: 10, max: 40 };
   var circleRadiusScale = d3.scaleSqrt()
     .domain(populationExtent)
     .range([circleSize.min, circleSize.max]);
@@ -40,18 +62,25 @@ function createBubbleChart(error, countries, continentNames) {
   function toggleContinentKey(showContinentKey) {
     var keyElementWidth = 150,
         keyElementHeight = 30;
-    var onScreenYOffset = keyElementHeight*1.5,
+    var onScreenYOffset = keyElementHeight*2.75,
+        onScreenYOffsetGroup = keyElementHeight*1.5
         offScreenYOffset = 100;
 
     if (d3.select(".continent-key").empty()) {
       createContinentKey();
     }
+
+    if (d3.select(".group-key").empty()) {
+      createGroupKey();
+    }
     var continentKey = d3.select(".continent-key");
+    var groupKey = d3.select(".group-key");
 
     if (showContinentKey) {
       translateContinentKey("translate(0," + (height - onScreenYOffset) + ")");
     } else {
-      translateContinentKey("translate(0," + (height + offScreenYOffset) + ")");
+      translateContinentKey("translate(0," + (keyElementHeight/2) + ")");
+      translateGroupKey("translate(0," + (height - onScreenYOffsetGroup) + ")");
     }
 
     function createContinentKey() {
@@ -92,8 +121,52 @@ function createBubbleChart(error, countries, continentNames) {
           });
     }
 
+    function createGroupKey() {
+      var keyWidth = keyElementWidth * groups.values().length;
+      var continentKeyScale = d3.scaleBand()
+        .domain(groups.values())
+        .range([(width - keyWidth) / 2, (width + keyWidth) / 2]);
+
+      svg.append("g")
+        .attr("class", "group-key")
+        .attr("transform", "translate(0," + (height + offScreenYOffset) + ")")
+        .selectAll("g")
+        .data(groups.values())
+        .enter()
+          .append("g")
+            .attr("class", "group-key-element");
+
+      d3.selectAll("g.group-key-element")
+        .append("rect")
+          .attr("width", keyElementWidth)
+          .attr("height", keyElementHeight)
+          .attr("x", function(d) { return continentKeyScale(d); })
+          .attr("fill", function(d) { return groupColorScale(d); });
+
+      d3.selectAll("g.group-key-element")
+        .append("text")
+          .attr("text-anchor", "middle")
+          .attr("x", function(d) { return continentKeyScale(d) + keyElementWidth/2; })
+          .text(function(d) { return continentNames[d]; });
+
+      // The text BBox has non-zero values only after rendering
+      d3.selectAll("g.group-key-element text")
+          .attr("y", function(d) {
+            var textHeight = this.getBBox().height;
+            // The BBox.height property includes some extra height we need to remove
+            var unneededTextHeight = 4;
+            return ((keyElementHeight + textHeight) / 2) - unneededTextHeight;
+          });
+    }
+
     function translateContinentKey(translation) {
       continentKey
+        .transition()
+        .duration(500)
+        .attr("transform", translation);
+    }
+    function translateGroupKey(translation) {
+      groupKey
         .transition()
         .duration(500)
         .attr("transform", translation);
@@ -135,7 +208,7 @@ function createBubbleChart(error, countries, continentNames) {
   function updateCircles() {
     circles
       .attr("fill", function(d) {
-        return flagFill() ? "url(#" + d.CountryCode + ")" : continentColorScale(d.ContinentCode);
+        return flagFill() ? groupColorScale(d.CountryCode) : continentColorScale(d.ContinentCode);
       });
   }
 
@@ -182,27 +255,26 @@ function createBubbleChart(error, countries, continentNames) {
       function continentForceX(d) {
         if (d.ContinentCode === "FO") {
           return left(width);
-        } else if (d.ContinentCode === "NO") {
-          return left(width);
         } else if (d.ContinentCode === "MO") {
-          return right(width);
-        } else if (d.ContinentCode === "TP" || d.ContinentCode === "SA") {
+          return right(width/2 + 50);
+        } else if (d.ContinentCode === "NO") {
+          return left(width*2 + 150);
+        } else if (d.ContinentCode === "TP") {
           return right(width);
         }
-        return center(width);
       }
 
       function continentForceY(d) {
         if (d.ContinentCode === "FO") {
-          return top(height);
+          return center(height/2);
         } else if (d.ContinentCode === "NO") {
-          return bottom(height);
+          return center(height/2);
         } else if (d.ContinentCode === "MO") {
-          return top(height);
+          return center(height);
         } else if (d.ContinentCode === "TP" || d.ContinentCode === "SA") {
-          return bottom(height);
+          return center(height);
         }
-        return center(height);
+        return center(height*2/3);
       }
 
       function left(dimension) { return dimension / 4; }
@@ -288,22 +360,21 @@ function createBubbleChart(error, countries, continentNames) {
   function addFillListener() {
     d3.selectAll('input[name="fill"]')
       .on("change", function() {
-        toggleContinentKey(!flagFill() && !populationGrouping());
-        updateCircles();
+        toggleContinentKey(!flagFill());
+/*        
+ */         updateCircles();
       });
   }
 
   function addGroupingListeners() {
-    addListener("#combine",         forces.combine);
-    addListener("#country-centers", forces.countryCenters);
     addListener("#continents",      forces.continent);
-    addListener("#population",      forces.population);
 
     function addListener(selector, forces) {
       d3.select(selector).on("click", function() {
         updateForces(forces);
-        toggleContinentKey(!flagFill() && !populationGrouping());
-        togglePopulationAxes(populationGrouping());
+        toggleContinentKey(!flagFill());
+/*         
+        togglePopulationAxes(populationGrouping()); */
       });
     }
 

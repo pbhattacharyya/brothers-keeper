@@ -4,5 +4,9 @@
   "FO": "Father Only",
   "TP": "Two parents",
   "SA": "South America",
-  "OC": "Oceana"
+  "OC": "Oceana",
+  "BF": "Black Female",
+  "BM": "Black Male",
+  "WF": "White Female",
+  "WM": "White Male"
 }

@@ -28,7 +28,7 @@ function createBubbleChart(error, countries, continentNames) {
   var continentColorScale = d3.scaleOrdinal( d3.schemeRdYlGn[4])
         .domain(continents.values());
 
-  var groupColorScale = d3.scaleOrdinal(d3.schemeBlues[6])
+  var groupColorScale = d3.scaleOrdinal(d3.schemeBlues[4])
         .domain(groups.values());
 
   var width = 900,
@@ -138,7 +138,7 @@ function createBubbleChart(error, countries, continentNames) {
 
       d3.selectAll("g.group-key-element")
         .append("rect")
-          .attr("width", keyElementWidth)
+          .attr("width", keyElementWidth/7)
           .attr("height", keyElementHeight)
           .attr("x", function(d) { return continentKeyScale(d); })
           .attr("fill", function(d) { return groupColorScale(d); });

@@ -23,7 +23,11 @@ span, h1, h2, h3, h4, h5, h6 {
 .nav-text{
   font-size: 1.5em;
   font-family: sans-serif;
+  color:white;
 
+}
+.nav-text:hover{
+  color: #cccccc;
 }
 
 h6.highlight{

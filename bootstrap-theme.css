@@ -1,7 +1,34 @@
 html, body {
   margin: 10px;
   padding: 0;
+  font-family: serif;
+}
+
+span, h1, h2, h3, h4, h5, h6 {
   font-family: sans-serif;
+}
+
+.text-block{
+ padding-top: 30px;
+ padding-bottom: 30px;
+}
+
+.nav-text{
+  font-size: 1.5em;
+  font-family: sans-serif;
+
+}
+
+h6.highlight{
+  font-size: 2em;
+  line-height: 2.3em;
+  color: red;
+}
+
+.body-text {
+  font-size: 1.5em;
+  line-height: 1.7em;
+
 }
 
 #controls {
